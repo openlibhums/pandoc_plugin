@@ -1,5 +1,11 @@
 from django.template import loader, RequestContext
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
+
+if settings.URL_CONFIG = 'path':
+    from core.monkeypatch import reverse
+else:
+    from django.shortcuts import reverse
 
 from plugins.pandoc_plugin import plugin_settings
 from utils import models, setting_handler
@@ -45,13 +51,34 @@ def inject_pandoc(context):
             pandoc_command = ['pandoc', '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
             subprocess.run(pandoc_command)
 
-            # TODO: associate md file with article, then create html or xml file and do the same
+            # TODO: make md file galley, child of original article
 
+            # strip md off file path
+            output_path = temp_md_path[:-3]
+
+            # convert to html or xml, passing article's title as metadata
+            metadata = '--metadata=title:"{}"'.format(article.title)
             if request.POST.get('convert_html'):
-                subprocess.run()
+
+                output_path += '.html'
+                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+                subprocess.run(pandoc_command)
+
             elif request.POST.get('convert_xml'):
-                subprocess.run()
-    # TODO: make galleys children of manuscript file
+
+                output_path += '.xml'
+                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+                subprocess.run(pandoc_command)
+        
+            # TODO: make new galleys children of manuscript file
+
+        return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
+
+    # render buttons if GET request
+    else:
+
+        return render(request, 'pandoc_plugin/inject.html')
+
 
 
 '''
