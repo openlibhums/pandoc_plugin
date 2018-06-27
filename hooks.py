@@ -31,7 +31,7 @@ def inject_pandoc(context):
     article = get_object_or_404(sub_models.Article, pk=article_id)
 
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
-    if request.method == "POST":
+    if request.method == "POST" and (request.POST.get('convert_html') or request.POST.get('convert_xml')):
         manuscripts = article.manuscript_files.filter(is_galley=False)
 
         # make sure there is at least one manuscript, if so get the first entry
