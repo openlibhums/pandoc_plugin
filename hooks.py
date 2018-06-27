@@ -52,6 +52,7 @@ def inject_pandoc(context):
             subprocess.run(pandoc_command)
 
             # TODO: make md file galley, child of original article
+            # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
             logic.save_galley(article, request, temp_md_path, True, "Other", True)
 
             # strip md off file path
