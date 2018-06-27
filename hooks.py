@@ -2,7 +2,8 @@ from django.template import loader, RequestContext
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 
-if settings.URL_CONFIG = 'path':
+# do I need this?
+if settings.URL_CONFIG == 'path':
     from core.monkeypatch import reverse
 else:
     from django.shortcuts import reverse
@@ -26,7 +27,7 @@ def inject_pandoc(context):
 
     # get article info
     request = context.get('request')
-    article_id = context.get('article_id')
+    article_id = context.get('article_id') # is this the correct way to access the current article with hooks?
     article = get_object_or_404(sub_models.Article, pk=article_id)
 
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
@@ -60,6 +61,7 @@ def inject_pandoc(context):
 
             # convert to html or xml, passing article's title as metadata
             metadata = '--metadata=title:"{}"'.format(article.title)
+
             if request.POST.get('convert_html'):
 
                 output_path += '.html'
@@ -83,6 +85,7 @@ def inject_pandoc(context):
     else:
 
         return render(request, 'pandoc_plugin/inject.html')
+        # DO I NEED TO PASS CONTEXT FOR HOOK?
 
 
 
