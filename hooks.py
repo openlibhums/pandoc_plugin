@@ -52,6 +52,7 @@ def inject_pandoc(context):
             subprocess.run(pandoc_command)
 
             # TODO: make md file galley, child of original article
+            logic.save_galley(article, request, temp_md_path, True, "Other", True)
 
             # strip md off file path
             output_path = temp_md_path[:-3]
@@ -63,14 +64,17 @@ def inject_pandoc(context):
                 output_path += '.html'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
+                logic.save_galley(article, request, output_path, True, 'HTML', False)
 
             elif request.POST.get('convert_xml'):
 
                 output_path += '.xml'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
+                logic.save_galley(article, request, output_path, True, 'XML', False)
         
-            # TODO: make new galleys children of manuscript file
+            # TODO: make new file galley and child of manuscript file
+            # AM I MAKING TWO COPIES OF THESE FILES? DO I NEED TO DELETE THE FILES CREATED BY PANDOC?
 
         return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
 
