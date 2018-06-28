@@ -1,11 +1,11 @@
+from utils import models
+
 PLUGIN_NAME = 'Pandoc Plugin'
 DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html or xml'
 AUTHOR = 'Drew Stimson and Daniel Evans'
 VERSION = 0.1
 SHORT_NAME = 'pandoc'
 MANAGER_URL = 'pandoc_index'
-
-from utils import models
 
 def install():
     new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME, version=VERSION, enabled=True)
@@ -15,9 +15,12 @@ def install():
     else:
         print('Plugin {0} is already installed.'.format(PLUGIN_NAME))
 
+    models.PluginSetting.objects.get_or_create(name='pandoc_enabled', plugin=new_plugin, types='boolean',
+                                               pretty_name='Enable Pandoc Plugin', description='Enable Pandoc Conversion Plugin',
+                                               is_translatable=False)
+
 def hook_registry():
     '''
     When site with hooks loaded, this is run for each plugin to create list of plugins
     '''
-    # Will want something like return {'conversion_button': {'module': 'plugins.pandoc_plugin.hooks', 'function': 'inject_pandoc'}}
-    pass
+    return {'conversion_buttons': {'module': 'plugins.pandoc_plugin.hooks', 'function': 'inject_pandoc'}}

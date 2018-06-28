@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import get_object_or_404
 
 from plugins.pandoc_plugin import forms
@@ -46,9 +46,65 @@ def convert(request, article_id):
     If request is GET, render button to convert.
     '''
 
-    if request.POST:
+    # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
+    if request.method == "POST":
+
+        # get article and manuscript info
+        if request.POST.get('convert_html'):
+            article_id = request.POST['convert_html']
+        elif request.POST.get('convert_xml'):
+            article_id = request.POST['convert_xml']
+
         article = get_object_or_404(sub_models.Article, pk=article_id)
-        man_file = get_object_or_404(models.File, article_id=article_id, is_galley=False)
+        manuscripts = article.manuscript_files.filter(is_galley=False)
+
+        # make sure there is at least one manuscript, if so get the first entry
+        if len(manuscripts) > 0:
+            orig_path = manuscripts[0].self_article_path()
+            
+            # generate a filename for the intermediate md file - raise error if unexpected manuscript file type
+            stripped_path, exten = os.path.splitext(orig_path)
+
+            if exten not in ['.docx', '.rtf']:
+                raise TypeError('Unexpected Manuscript File Type')
+
+            temp_md_path = stripped_path + '.md'
+
+            # construct and execute subprocess.run() command to create intermediate md file
+            pandoc_command = ['pandoc', '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
+            subprocess.run(pandoc_command)
+
+            # TODO: make md file galley, child of original article
+            # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
+            logic.save_galley(article, request, temp_md_path, True, "Other", True)
+
+            # convert to html or xml, passing article's title as metadata
+            metadata = '--metadata=title:"{}"'.format(article.title)
+
+            if request.POST.get('convert_html'):
+
+                output_path = stripped_path + '.html'
+                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+                subprocess.run(pandoc_command)
+                logic.save_galley(article, request, output_path, True, 'HTML', False)
+
+            elif request.POST.get('convert_xml'):
+
+                output_path = stripped_path + '.xml'
+                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+                subprocess.run(pandoc_command)
+                logic.save_galley(article, request, output_path, True, 'XML', False)
+        
+            # TODO: make new file galley and child of manuscript file
+            # AM I MAKING TWO COPIES OF THESE FILES? DO I NEED TO DELETE THE FILES CREATED BY PANDOC?
+
+        return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
+
+    # render buttons if GET request
+    else:
+        return reverse('production_article', kwargs={'article_id': request.article.pk})
+        
+        # DO I NEED TO PASS CONTEXT FOR HOOK?
 
         
 
