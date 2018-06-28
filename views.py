@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from django.contrib import messages
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
@@ -13,6 +13,7 @@ from utils import setting_handler
 from utils import models
 
 import os
+import subprocess
 
 def index(request):
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
@@ -103,6 +104,7 @@ def convert(request, article_id):
         return reverse('production_article', kwargs={'article_id': request.article.pk})
         
         # DO I NEED TO PASS CONTEXT FOR HOOK?
+        # NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
 
         
 

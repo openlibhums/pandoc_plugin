@@ -1,16 +1,8 @@
-from django.template import loader, RequestContext
-from django.shortcuts import render, redirect, get_object_or_404
-from django.conf import settings
-
+from django.shortcuts import render
 from django.urls import reverse
 
 from plugins.pandoc_plugin import plugin_settings
 from utils import models, setting_handler
-from submission import models as sub_models
-from core import models as core_models
-from production import logic
-
-import subprocess
 
 def inject_pandoc(context):
     '''
