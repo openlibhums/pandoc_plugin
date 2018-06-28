@@ -1,21 +1,21 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
 
-from plugins.pandoc_plugin import forms
-from plugins.pandoc_plugin import plugin_settings
+from plugins.pandoc_plugin import forms, plugin_settings
 
-from core import models
 from submission import models as sub_models
+from production import logic
 
-from utils import setting_handler
-from utils import models
+from utils import setting_handler, models
 
 import os
 import subprocess
 
 def index(request):
+    '''
+    Render admin page allowing users to enable or disable the plugin
+    '''
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
     pandoc_enabled = setting_handler.get_plugin_setting(plugin, 'pandoc_enabled', request.journal, create=True,
                                                         pretty='Enable Pandoc', types='boolean').processed_value
@@ -37,6 +37,7 @@ def index(request):
     }
 
     return render(request, template, context)
+
 
 def convert(request, article_id):
     '''
@@ -105,8 +106,3 @@ def convert(request, article_id):
         
         # DO I NEED TO PASS CONTEXT FOR HOOK?
         # NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
-
-        
-
-
-
