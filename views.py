@@ -16,11 +16,9 @@ import os
 
 def index(request):
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
-    pandoc_shortname = setting_handler.get_plugin_setting(plugin, 'pandoc_shortname', request.journal, create=True,
-                                                          pretty='Pandoc Shortname', types='text').processed_value
     pandoc_enabled = setting_handler.get_plugin_setting(plugin, 'pandoc_enabled', request.journal, create=True,
                                                         pretty='Enable Pandoc', types='boolean').processed_value
-    admin_form = forms.PandocAdminForm(initial={'pandoc_shortname': pandoc_shortname, 'pandoc_enabled': pandoc_enabled})
+    admin_form = forms.PandocAdminForm(initial={'pandoc_enabled': pandoc_enabled})
 
     if request.POST:
         admin_form = forms.PandocAdminForm(request.POST)
