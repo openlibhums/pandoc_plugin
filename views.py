@@ -39,7 +39,7 @@ def index(request):
     return render(request, template, context)
 
 
-def convert(request, article_id):
+def convert(request, article_id=None):
     '''
     If request is POST, try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
@@ -76,7 +76,8 @@ def convert(request, article_id):
 
             # TODO: make md file galley, child of original article
             # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
-            logic.save_galley(article, request, temp_md_path, True, "Other", True)
+
+            #logic.save_galley(article, request, temp_md_path, True, "Other", True, save_to_disk=False)
 
             # convert to html or xml, passing article's title as metadata
             metadata = '--metadata=title:"{}"'.format(article.title)
@@ -86,7 +87,7 @@ def convert(request, article_id):
                 output_path = stripped_path + '.html'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'HTML', False)
+                logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
             elif request.POST.get('convert_xml'):
 
