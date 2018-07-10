@@ -18,7 +18,7 @@ def inject_pandoc(context):
         return ''
 
     else:
-        return render_to_string('pandoc_plugin/inject.html', context=None, request=request)
+        return render_to_string('pandoc_plugin/inject.html', context={'article': context.get('article')}, request=request)
 
 # Useful functions from core.files:
 # copy_local_file_to_article(file_to_handle, file_name, article, owner, label=None, description=None, replace=None, galley=False)
