@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.template.loader import render_to_string
 
 from plugins.pandoc_plugin import plugin_settings
 from utils import models, setting_handler
@@ -18,7 +18,7 @@ def inject_pandoc(context):
         return ''
 
     else:
-        return render(request, 'pandoc_plugin/inject.html')
+        return render_to_string('pandoc_plugin/inject.html', context=None, request=request)
 
 # Useful functions from core.files:
 # copy_local_file_to_article(file_to_handle, file_name, article, owner, label=None, description=None, replace=None, galley=False)
