@@ -6,6 +6,7 @@ from plugins.pandoc_plugin import forms, plugin_settings
 
 from submission import models as sub_models
 from production import logic
+from core import files
 
 from utils import setting_handler, models
 
@@ -50,6 +51,7 @@ def convert(request, article_id=None):
     if request.method == "POST":
 
         article = get_object_or_404(sub_models.Article, pk=article_id)
+        children = files.file_children(article)
         manuscripts = article.manuscript_files.filter(is_galley=False)
 
         # make sure there is at least one manuscript, if so get the first entry
@@ -81,14 +83,20 @@ def convert(request, article_id=None):
                 output_path = stripped_path + '.html'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
+                if children.filter(label='HTML'):
+                    logic.replace_galley_file(article, request, children.filter(label='HTML')[0], output_path)
+                else:
+                    logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
             elif request.POST.get('convert_xml'):
 
                 output_path = stripped_path + '.xml'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
+                if children.filter(label='XML'):
+                    logic.replace_galley_file(article, request, children.filter(label='XML')[0], output_path)
+                else:
+                    logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
         
             # TODO: make new file galley and child of manuscript file
 
