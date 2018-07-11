@@ -49,12 +49,6 @@ def convert(request, article_id=None):
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
     if request.method == "POST":
 
-        # get article and manuscript info
-        if request.POST.get('convert_html'):
-            article_id = request.POST['convert_html']
-        elif request.POST.get('convert_xml'):
-            article_id = request.POST['convert_xml']
-
         article = get_object_or_404(sub_models.Article, pk=article_id)
         manuscripts = article.manuscript_files.filter(is_galley=False)
 
@@ -94,10 +88,9 @@ def convert(request, article_id=None):
                 output_path = stripped_path + '.xml'
                 pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
                 subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'XML', False)
+                logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
         
             # TODO: make new file galley and child of manuscript file
-            # AM I MAKING TWO COPIES OF THESE FILES? DO I NEED TO DELETE THE FILES CREATED BY PANDOC?
 
         return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
 
@@ -105,5 +98,4 @@ def convert(request, article_id=None):
     else:
         return reverse('production_article', kwargs={'article_id': request.article.pk})
         
-        # DO I NEED TO PASS CONTEXT FOR HOOK?
-        # NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
+# NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
