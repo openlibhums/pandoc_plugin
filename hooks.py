@@ -18,5 +18,5 @@ def inject_pandoc(context):
         return ''
 
     else:
-        return render_to_string('pandoc_plugin/inject.html', context={'article': context.get('article')}, request=request)
+        return render_to_string('pandoc_plugin/inject.html', context={'article': context.get('article'), 'file': context.get('file')}, request=request)
 
