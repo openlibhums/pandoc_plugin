@@ -5,6 +5,7 @@ from django.urls import reverse
 from plugins.pandoc_plugin import forms, plugin_settings
 
 from submission import models as sub_models
+from core import models as core_models
 from production import logic
 
 from utils import setting_handler, models
@@ -39,7 +40,7 @@ def index(request):
     return render(request, template, context)
 
 
-def convert(request, article_id=None):
+def convert(request, article_id=None, file_id=None):
     '''
     If request is POST, try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
@@ -49,48 +50,47 @@ def convert(request, article_id=None):
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
     if request.method == "POST":
 
+        # retrieve article and selected manuscript
         article = get_object_or_404(sub_models.Article, pk=article_id)
-        manuscripts = article.manuscript_files.filter(is_galley=False)
+        manuscript = get_object_or_404(core_models.File, pk=file_id)
 
-        # make sure there is at least one manuscript, if so get the first entry
-        if len(manuscripts) > 0:
-            orig_path = manuscripts[0].self_article_path()
-            
-            # generate a filename for the intermediate md file - raise error if unexpected manuscript file type
-            stripped_path, exten = os.path.splitext(orig_path)
-
-            if exten not in ['.docx', '.rtf']:
-                raise TypeError('Unexpected Manuscript File Type')
-
-            temp_md_path = stripped_path + '.md'
-
-            # construct and execute subprocess.run() command to create intermediate md file
-            pandoc_command = ['pandoc', '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
-            subprocess.run(pandoc_command)
-
-            # TODO: make md file galley, child of original article
-            # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
-
-            #logic.save_galley(article, request, temp_md_path, True, "Other", True, save_to_disk=False)
-
-            # convert to html or xml, passing article's title as metadata
-            metadata = '--metadata=title:"{}"'.format(article.title)
-
-            if request.POST.get('convert_html'):
-
-                output_path = stripped_path + '.html'
-                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
-                subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
-
-            elif request.POST.get('convert_xml'):
-
-                output_path = stripped_path + '.xml'
-                pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
-                subprocess.run(pandoc_command)
-                logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
+        orig_path = manuscript.self_article_path()
         
-            # TODO: make new file galley and child of manuscript file
+        # generate a filename for the intermediate md file - raise error if unexpected manuscript file type
+        stripped_path, exten = os.path.splitext(orig_path)
+
+        if exten not in ['.docx', '.rtf']:
+            raise TypeError('Unexpected Manuscript File Type')
+
+        temp_md_path = stripped_path + '.md'
+
+        # construct and execute subprocess.run() command to create intermediate md file
+        pandoc_command = ['pandoc', '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
+        subprocess.run(pandoc_command)
+
+        # TODO: make md file galley, child of original article
+        # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
+
+        #logic.save_galley(article, request, temp_md_path, True, "Other", True, save_to_disk=False)
+
+        # convert to html or xml, passing article's title as metadata
+        metadata = '--metadata=title:"{}"'.format(article.title)
+
+        if request.POST.get('convert_html'):
+
+            output_path = stripped_path + '.html'
+            pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+            subprocess.run(pandoc_command)
+            logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
+
+        elif request.POST.get('convert_xml'):
+
+            output_path = stripped_path + '.xml'
+            pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
+            subprocess.run(pandoc_command)
+            logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
+        
+            # TODO: make new file child of manuscript file
 
         return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
 
