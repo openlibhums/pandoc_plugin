@@ -18,18 +18,11 @@ This is a plugin for [Janeway](https://github.com/BirkbeckCTP/janeway) that prov
 
 *N. B. You must have pandoc installed on your server to use this plugin. Please see pandoc's installation documentation __[here](https://pandoc.org/installing.html)__.*
 
-Installing pandoc on RHEL was difficult, so here are further instructions:
-- If using RHEL, most up-to-date version seems to be 1.12, need at least 1.13 for full docx support, so [build from source](https://pandoc.org/installing.html)
-- Pandoc must be available to all users, this is how I accomplished this:
-    - Download [most recent pandoc](https://hackage.haskell.org/package/pandoc) tarball to server
-    - Unzip: `tar xvzf pandoc-2.2.2.1.tar.gz` (replace version number with whichever you downloaded)
-    - Install [stack](https://docs.haskellstack.org/en/stable/install_and_upgrade/): `curl -sSL https://get.haskellstack.org/ | sh`
-    - Move into unzipped pandoc diretory, run `stack setup` then `stack install` - installs to ~/.local/bin (will take quite a while)
-    - Copy to /opt:
-    ```
-    sudo mkdir /opt/pandoc
-    sudo cp ~/.local/bin/pandoc /opt/pandoc/pandoc
-    ```
-    - Symlink into /usr/local/bin: `ln -s /opt/pandoc/pandoc /usr/local/bin/pandoc`
-    - If something goes wrong and you need to remove the symlink, just type `sudo rm /usr/local/bin/pandoc`
-- Pandoc should now be available for all users to run, ensuring the plugin will work
+Most of the package managers for Linux distributions offer older versions of Pandoc, and you need at least 1.13 for full docx support. Luckily, pandoc offers a compiled distribution in .deb format:
+
+``` sh
+wget 'https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-1-amd64.deb'
+dpkg -i pandoc-2.5-1-amd64.deb
+rm pandoc-2.5-1-amd64.deb
+```
+Pandoc should now be available for all users to run, ensuring the plugin will work
