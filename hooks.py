@@ -6,7 +6,7 @@ from utils import models, setting_handler
 
 def inject_pandoc(context):
     """
-    Provides buttons for users to automatically convert manuscript files (docx or rtf) to html or xml.
+    Provides buttons for users to automatically convert manuscript files (docx or rtf) to html.
     Uses the pandoc plugin, which must be installed on the server.
     """
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)

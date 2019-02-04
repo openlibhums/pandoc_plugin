@@ -53,7 +53,7 @@ def convert(request, article_id=None, file_id=None):
     memory_limit = ['+RTS', '-M512M', '-RTS']
     base_pandoc_command = ['pandoc'] + memory_limit
 
-    # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
+    # if post, get the original manuscript file, convert to html
     if request.method == "POST":
 
         # retrieve article and selected manuscript
@@ -79,7 +79,7 @@ def convert(request, article_id=None, file_id=None):
 
         #logic.save_galley(article, request, temp_md_path, True, "Other", True, save_to_disk=False)
 
-        # convert to html or xml, passing article's title as metadata
+        # convert to html, passing article's title as metadata
         metadata = '--metadata=title:"{}"'.format(article.title)
 
         if request.POST.get('convert_html'):
@@ -89,13 +89,6 @@ def convert(request, article_id=None, file_id=None):
             subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
-        elif request.POST.get('convert_xml'):
-
-            output_path = stripped_path + '.xml'
-            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
-            logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
-
             # TODO: make new file child of manuscript file
 
         return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
@@ -104,4 +97,4 @@ def convert(request, article_id=None, file_id=None):
     else:
         return reverse('production_article', kwargs={'article_id': request.article.pk})
 
-# NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
+# NEED LOGIC FOR IF HTML ALREADY GENERATED
