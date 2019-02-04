@@ -47,6 +47,12 @@ def convert(request, article_id=None, file_id=None):
     If request is GET, render button to convert.
     '''
 
+    # Argument added to all calls to pandoc that caps the size of Pandoc's heap,
+    # preventing maliciously formatted files from triggering a runaway
+    # conversion process.
+    memory_limit = ['+RTS', '-M512M', '-RTS']
+    base_pandoc_command = ['pandoc'] + memory_limit
+
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
     if request.method == "POST":
 
@@ -55,7 +61,7 @@ def convert(request, article_id=None, file_id=None):
         manuscript = get_object_or_404(core_models.File, pk=file_id)
 
         orig_path = manuscript.self_article_path()
-        
+
         # generate a filename for the intermediate md file - raise error if unexpected manuscript file type
         stripped_path, exten = os.path.splitext(orig_path)
 
@@ -65,8 +71,8 @@ def convert(request, article_id=None, file_id=None):
         temp_md_path = stripped_path + '.md'
 
         # construct and execute subprocess.run() command to create intermediate md file
-        pandoc_command = ['pandoc', '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
-        subprocess.run(pandoc_command)
+        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
+        subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
 
         # TODO: make md file galley, child of original article
         # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
@@ -79,17 +85,17 @@ def convert(request, article_id=None, file_id=None):
         if request.POST.get('convert_html'):
 
             output_path = stripped_path + '.html'
-            pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command)
+            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
+            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
         elif request.POST.get('convert_xml'):
 
             output_path = stripped_path + '.xml'
-            pandoc_command = ['pandoc', '-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command)
+            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
+            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
             logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
-        
+
             # TODO: make new file child of manuscript file
 
         return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
@@ -97,5 +103,5 @@ def convert(request, article_id=None, file_id=None):
     # render buttons if GET request
     else:
         return reverse('production_article', kwargs={'article_id': request.article.pk})
-        
+
 # NEED LOGIC FOR IF HTML OR XML ALREADY GENERATED
