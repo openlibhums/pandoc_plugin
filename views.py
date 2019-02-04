@@ -44,7 +44,7 @@ def convert(request, article_id=None, file_id=None):
     # Argument added to all calls to pandoc that caps the size of Pandoc's heap,
     # preventing maliciously formatted files from triggering a runaway
     # conversion process.
-    memory_limit = '+RTS -M512M -RTS"
+    memory_limit = '+RTS -M512M -RTS'
     base_pandoc_command = ['pandoc', memory_limit]
 
     '''
