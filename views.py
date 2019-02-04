@@ -72,7 +72,7 @@ def convert(request, article_id=None, file_id=None):
 
         # construct and execute subprocess.run() command to create intermediate md file
         pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
-        subprocess.run(pandoc_command)
+        subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
 
         # TODO: make md file galley, child of original article
         # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
@@ -86,14 +86,14 @@ def convert(request, article_id=None, file_id=None):
 
             output_path = stripped_path + '.html'
             pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command)
+            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
         elif request.POST.get('convert_xml'):
 
             output_path = stripped_path + '.xml'
             pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command)
+            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
             logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
 
             # TODO: make new file child of manuscript file
