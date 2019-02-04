@@ -41,17 +41,17 @@ def index(request):
 
 
 def convert(request, article_id=None, file_id=None):
-    # Argument added to all calls to pandoc that caps the size of Pandoc's heap,
-    # preventing maliciously formatted files from triggering a runaway
-    # conversion process.
-    memory_limit = '+RTS -M512M -RTS'
-    base_pandoc_command = ['pandoc', memory_limit]
-
     '''
     If request is POST, try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
     If request is GET, render button to convert.
     '''
+
+    # Argument added to all calls to pandoc that caps the size of Pandoc's heap,
+    # preventing maliciously formatted files from triggering a runaway
+    # conversion process.
+    memory_limit = ['+RTS', '-M512M', '-RTS']
+    base_pandoc_command = ['pandoc'] + memory_limit
 
     # if post, get the original manuscript file, convert to html or xml based on which button the user clicked
     if request.method == "POST":
