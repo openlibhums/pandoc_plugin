@@ -1,7 +1,7 @@
 from utils import models
 
 PLUGIN_NAME = 'Pandoc Plugin'
-DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html or xml'
+DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html'
 AUTHOR = 'Drew Stimson and Daniel Evans'
 VERSION = 0.1
 SHORT_NAME = 'pandoc_plugin'
