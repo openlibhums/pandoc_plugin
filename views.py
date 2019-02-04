@@ -71,7 +71,7 @@ def convert(request, article_id=None, file_id=None):
         temp_md_path = stripped_path + '.md'
 
         # construct and execute subprocess.run() command to create intermediate md file
-        pandoc_command = [base_pandoc_command, '-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
+        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
         subprocess.run(pandoc_command)
 
         # TODO: make md file galley, child of original article
@@ -85,14 +85,14 @@ def convert(request, article_id=None, file_id=None):
         if request.POST.get('convert_html'):
 
             output_path = stripped_path + '.html'
-            pandoc_command = [base_pandoc_command, '-s', temp_md_path, '-o', output_path, metadata]
+            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
             subprocess.run(pandoc_command)
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
         elif request.POST.get('convert_xml'):
 
             output_path = stripped_path + '.xml'
-            pandoc_command = [base_pandoc_command, '-s', temp_md_path, '-o', output_path, metadata]
+            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
             subprocess.run(pandoc_command)
             logic.save_galley(article, request, output_path, True, 'XML', False, save_to_disk=False)
 
