@@ -73,7 +73,7 @@ def convert(request, article_id=None, file_id=None):
         temp_md_path = stripped_path + '.md'
 
         # construct and execute subprocess.run() command to create intermediate md file
-        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', "bloopery", temp_md_path]
+        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
         try:
             subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
         except subprocess.CalledProcessError as e:
