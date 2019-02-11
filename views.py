@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 from plugins.pandoc_plugin import forms, plugin_settings
 
@@ -66,13 +67,19 @@ def convert(request, article_id=None, file_id=None):
         stripped_path, exten = os.path.splitext(orig_path)
 
         if exten not in ['.docx', '.rtf']:
-            raise TypeError('Unexpected Manuscript File Type')
+            messages.add_message(request, messages.ERROR, 'The Pandoc plugin currently only supports .docx and .rtf filetypes')
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
         temp_md_path = stripped_path + '.md'
 
         # construct and execute subprocess.run() command to create intermediate md file
-        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
-        subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
+        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', "bloopery", temp_md_path]
+        try:
+            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
+        except subprocess.CalledProcessError as e:
+            messages.add_message(request, messages.ERROR, 'Pandoc encountered the following error when executing the command {cmd}: {err}'.format(cmd=e.cmd, err=e.stderr))
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
 
         # TODO: make md file galley, child of original article
         # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
@@ -86,7 +93,13 @@ def convert(request, article_id=None, file_id=None):
 
             output_path = stripped_path + '.html'
             pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
-            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
+
+            try:
+                subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
+            except subprocess.CalledProcessError as e:
+                messages.add_message(request, messages.ERROR, 'Pandoc encountered the following error when executing the command {cmd}: {err}'.format(cmd=e.cmd, err=e.stderr))
+                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
             # TODO: make new file child of manuscript file
