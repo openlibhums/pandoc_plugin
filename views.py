@@ -13,6 +13,7 @@ from utils import setting_handler, models
 
 import os
 import subprocess
+from bs4 import BeautifulSoup
 
 def index(request):
     '''
@@ -70,35 +71,31 @@ def convert(request, article_id=None, file_id=None):
             messages.add_message(request, messages.ERROR, 'The Pandoc plugin currently only supports .docx and .rtf filetypes')
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-        temp_md_path = stripped_path + '.md'
-
-        # construct and execute subprocess.run() command to create intermediate md file
-        pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'markdown', '-o', temp_md_path]
-        try:
-            subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
-        except subprocess.CalledProcessError as e:
-            messages.add_message(request, messages.ERROR, 'Pandoc encountered the following error when executing the command {cmd}: {err}'.format(cmd=e.cmd, err=e.stderr))
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-
-
-        # TODO: make md file galley, child of original article
-        # DOES THE FILE I'M PASSING NEED TO BE IN MEMORY RATHER THAN A PATH TO THE FILE ON SERVER?
-
-        #logic.save_galley(article, request, temp_md_path, True, "Other", True, save_to_disk=False)
-
-        # convert to html, passing article's title as metadata
-        metadata = '--metadata=title:"{}"'.format(article.title)
-
         if request.POST.get('convert_html'):
 
+            # convert to html, passing article's title as metadata
+            metadata = '--metadata=title:"{}"'.format(article.title)
             output_path = stripped_path + '.html'
-            pandoc_command = base_pandoc_command + ['-s', temp_md_path, '-o', output_path, metadata]
+
+            pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'html', metadata]
 
             try:
-                subprocess.run(pandoc_command, stderr=subprocess.PIPE, check=True)
+                pandoc_return = subprocess.run(pandoc_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
             except subprocess.CalledProcessError as e:
                 messages.add_message(request, messages.ERROR, 'Pandoc encountered the following error when executing the command {cmd}: {err}'.format(cmd=e.cmd, err=e.stderr))
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+            pandoc_soup = BeautifulSoup(pandoc_return.stdout, 'html.parser')
+
+            for img in pandoc_soup.find_all("img"):
+                # Pandoc adds `media/` to the src attributes of all the img tags it creates. We want to remove that prefix and leave only the base filename.
+                img["src"] = img["src"].replace("media/", "")
+                # Pandoc also guesses at the height/width attributes of images. We wish to strip those style tags
+                del img["style"]
+
+            # Write revised HTML to file
+            with open(output_path, "w") as html_file:
+                print(pandoc_soup.prettify(), file=html_file)
 
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
