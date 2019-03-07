@@ -73,11 +73,9 @@ def convert(request, article_id=None, file_id=None):
 
         if request.POST.get('convert_html'):
 
-            # convert to html, passing article's title as metadata
-            metadata = '--metadata=title:"{}"'.format(article.title)
             output_path = stripped_path + '.html'
 
-            pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'html', metadata]
+            pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'html']
 
             try:
                 pandoc_return = subprocess.run(pandoc_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
