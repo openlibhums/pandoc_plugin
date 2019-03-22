@@ -93,7 +93,7 @@ def convert(request, article_id=None, file_id=None):
 
             # Write revised HTML to file
             with open(output_path, mode="w", encoding="utf-8") as html_file:
-                print(pandoc_soup.prettify(), file=html_file)
+                print(pandoc_soup, file=html_file)
 
             logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
 
