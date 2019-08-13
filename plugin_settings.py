@@ -6,7 +6,6 @@ AUTHOR = 'Drew Stimson and Daniel Evans'
 VERSION = 0.1
 SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
-JANEWAY_VERSION = "1.3.6"
 
 
 def install():
