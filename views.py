@@ -15,6 +15,7 @@ import os
 import subprocess
 from bs4 import BeautifulSoup
 
+
 def index(request):
     '''
     Render admin page allowing users to enable or disable the plugin
@@ -95,7 +96,7 @@ def convert(request, article_id=None, file_id=None):
             with open(output_path, mode="w", encoding="utf-8") as html_file:
                 print(pandoc_soup, file=html_file)
 
-            logic.save_galley(article, request, output_path, True, 'HTML', False, save_to_disk=False)
+            logic.save_galley(article, request, output_path, True, 'HTML', save_to_disk=False)
 
             # TODO: make new file child of manuscript file
 

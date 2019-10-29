@@ -3,13 +3,18 @@ from utils import models
 PLUGIN_NAME = 'Pandoc Plugin'
 DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html'
 AUTHOR = 'Drew Stimson and Daniel Evans'
-VERSION = 0.1
+VERSION = 0.2
+JANEWAY_VERSION = '1.3.6'
 SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
 
 
 def install():
-    new_plugin, created = models.Plugin.objects.get_or_create(name=SHORT_NAME, version=VERSION, enabled=True)
+    new_plugin, created = models.Plugin.objects.get_or_create(
+        name=SHORT_NAME,
+        enabled=True,
+        defaults={'version': VERSION},
+    )
 
     if created:
         print('Plugin {0} installed.'.format(PLUGIN_NAME))
@@ -22,6 +27,7 @@ def install():
                                                pretty_name='Enable Pandoc Plugin',
                                                description='Enable Pandoc Conversion Plugin',
                                                is_translatable=False)
+
 
 def hook_registry():
     """
