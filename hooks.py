@@ -20,3 +20,21 @@ def inject_pandoc(context):
     else:
         return render_to_string('pandoc_plugin/inject.html', context={'article': context.get('article'), 'file': context.get('file')}, request=request)
 
+
+def conversion_row_hook(context, file_, article):
+    """ Provides a verbose menu for pandoc transformations in a row format"""
+
+    plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
+    request = context["request"]
+    pandoc_enabled = setting_handler.get_plugin_setting(plugin, 'pandoc_enabled', request.journal, create=True,
+                                                        pretty='Pandoc Enabled', types='boolean')
+
+    if pandoc_enabled.processed_value:
+        context={'article': article, 'file': file_}
+        return render_to_string(
+                "pandoc_plugin/row_hook.html",
+                context=context,
+                request=request,
+        )
+    else:
+        return ''

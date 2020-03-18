@@ -1,0 +1,10 @@
+<tr id="pandoc_conversion">
+    <td>Pandoc (Plugin)</td>
+    <td>Pandoc transforms a .docx or .rtf file into an HTML document that can be rendered on the browser</td>
+    <td>
+     <form action="{% url 'pandoc_convert' article.pk file.pk %}" method="post">
+      {% csrf_token %}
+        <button type="submit" class="button success small" name="convert_html" value="{{ article.pk }}">Generate HTML</button>
+     </form>
+    </td>
+</tr>

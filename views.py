@@ -100,10 +100,10 @@ def convert(request, article_id=None, file_id=None):
 
             # TODO: make new file child of manuscript file
 
-        return redirect(reverse('production_article', kwargs={'article_id': article.pk}))
+        return redirect(request.META.get('HTTP_REFERER'))
 
     # render buttons if GET request
     else:
-        return reverse('production_article', kwargs={'article_id': request.article.pk})
+        return reverse(request.META.get('HTTP_REFERER'))
 
 # NEED LOGIC FOR IF HTML ALREADY GENERATED

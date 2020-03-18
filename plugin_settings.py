@@ -33,4 +33,13 @@ def hook_registry():
     """
     When site with hooks loaded, this is run for each plugin to create list of plugins
     """
-    return {'conversion_buttons': {'module': 'plugins.pandoc_plugin.hooks', 'function': 'inject_pandoc'}}
+    return {
+            'conversion_buttons': {
+                'module': 'plugins.pandoc_plugin.hooks',
+                'function': 'inject_pandoc',
+            },
+            'conversion_row': {
+                'module': 'plugins.pandoc_plugin.hooks',
+                'function': 'conversion_row_hook',
+            },
+    }
