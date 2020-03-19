@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from django.views.decorators.http import require_POST
 
 from core import models as core_models
 from production import logic
@@ -39,34 +40,31 @@ def index(request):
 
     return render(request, template, context)
 
-
+@require_POST
 def convert_file(request, article_id=None, file_id=None):
     '''
-    If request is POST, try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
+    Try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
     If request is GET, render button to convert.
     '''
 
-    # if post, get the original manuscript file, convert to html
-    if request.method == "POST":
+    # retrieve article and selected manuscript
+    article = get_object_or_404(sub_models.Article, pk=article_id)
+    manuscript = get_object_or_404(core_models.File, pk=file_id)
+    file_path = manuscript.self_article_path()
 
-        # retrieve article and selected manuscript
-        article = get_object_or_404(sub_models.Article, pk=article_id)
-        manuscript = get_object_or_404(core_models.File, pk=file_id)
-        file_path = manuscript.self_article_path()
+    try:
+        html = convert.generate_html_from_doc(article, file_path)
+    except (TypeError, convert.PandocError)  as err:
+        messages.add_message( request, messages.ERROR, err)
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-        try:
-            html = convert.generate_html_from_doc(article, file_path)
-        except (TypeError, convert.PandocError)  as err:
-            messages.add_message( request, messages.ERROR, err)
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-
-        stripped, _ = os.path.splitext(file_path)
-        output_path = stripped + '.html'
-        with open(output_path, mode="w", encoding="utf-8") as html_file:
-            print(html, file=html_file)
-        logic.save_galley(article, request, output_path, True, 'HTML',
-            save_to_disk=False)
+    stripped, _ = os.path.splitext(file_path)
+    output_path = stripped + '.html'
+    with open(output_path, mode="w", encoding="utf-8") as html_file:
+        print(html, file=html_file)
+    logic.save_galley(article, request, output_path, True, 'HTML',
+        save_to_disk=False)
 
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
