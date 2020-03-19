@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 
 from core import models as core_models
 from production import logic
+from security.decorators import production_user_or_editor_required
 from submission import models as sub_models
 from utils import setting_handler, models
 
@@ -41,6 +42,7 @@ def index(request):
     return render(request, template, context)
 
 @require_POST
+@production_user_or_editor_required
 def convert_file(request, article_id=None, file_id=None):
     '''
     Try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
@@ -50,11 +52,12 @@ def convert_file(request, article_id=None, file_id=None):
 
     # retrieve article and selected manuscript
     article = get_object_or_404(sub_models.Article, pk=article_id)
-    manuscript = get_object_or_404(core_models.File, pk=file_id)
+    manuscript = get_object_or_404(core_models.File,
+        pk=file_id, article_id=article.pk)
     file_path = manuscript.self_article_path()
 
     try:
-        html = convert.generate_html_from_doc(article, file_path)
+        html = convert.generate_html_from_doc(file_path)
     except (TypeError, convert.PandocError)  as err:
         messages.add_message( request, messages.ERROR, err)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
