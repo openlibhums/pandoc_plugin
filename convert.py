@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import os
 import subprocess
-from production import logic
 
 from plugins.pandoc_plugin import plugin_settings
 
@@ -12,19 +11,18 @@ MEMORY_LIMIT_ARG = ['+RTS', '-M{}M'.format(plugin_settings.MEMORY_LIMIT_MB), '-R
 PANDOC_CMD = ['pandoc']
 
 
-def generate_html_from_doc(article, manuscript, request):
-    """ Generates an HTML galley
+def generate_html_from_doc(doc_path):
+    """ Generates an HTML galley from the given document path
+    :param doc_path: A string with the path to the file to be converted
     """
-    orig_path = manuscript.self_article_path()
-    stripped_path, exten = os.path.splitext(orig_path)
-    if exten not in ['.docx', '.rtf']:
+    _, extension = os.path.splitext(doc_path)
+    if extension not in ['.docx', '.rtf']:
         raise TypeError("File Extension {} not supported".format(extension))
 
-    output_path = stripped_path + '.html'
     pandoc_command = (
             PANDOC_CMD
             + MEMORY_LIMIT_ARG
-            + ['-s', orig_path, '-t', 'html']
+            + ['-s', doc_path, '-t', 'html']
     )
     try:
         pandoc_return = subprocess.run(
@@ -44,11 +42,7 @@ def generate_html_from_doc(article, manuscript, request):
         # Undo pandoc guess of height/width attributes of images.
         del img["style"]
 
-    with open(output_path, mode="w", encoding="utf-8") as html_file:
-        print(pandoc_soup, file=html_file)
-
-    logic.save_galley(article, request, output_path, True, 'HTML', save_to_disk=False)
-    #return str(pandoc_soup)
+    return str(pandoc_soup)
 
 
 class PandocError(Exception):

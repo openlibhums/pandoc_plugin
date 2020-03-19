@@ -1,10 +1,12 @@
+import os
+
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
-
 from core import models as core_models
+from production import logic
 from submission import models as sub_models
 from utils import setting_handler, models
 
@@ -45,24 +47,27 @@ def convert_file(request, article_id=None, file_id=None):
     If request is GET, render button to convert.
     '''
 
-    # Argument added to all calls to pandoc that caps the size of Pandoc's heap,
-    # preventing maliciously formatted files from triggering a runaway
-    # conversion process.
-    memory_limit = ['+RTS', '-M512M', '-RTS']
-    base_pandoc_command = ['pandoc'] + memory_limit
-
     # if post, get the original manuscript file, convert to html
     if request.method == "POST":
 
         # retrieve article and selected manuscript
         article = get_object_or_404(sub_models.Article, pk=article_id)
         manuscript = get_object_or_404(core_models.File, pk=file_id)
+        file_path = manuscript.self_article_path()
 
         try:
-            convert.generate_html_from_doc(article, manuscript, request)
+            html = convert.generate_html_from_doc(article, file_path)
         except (TypeError, convert.PandocError)  as err:
             messages.add_message( request, messages.ERROR, err)
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+        stripped, _ = os.path.splitext(file_path)
+        output_path = stripped + '.html'
+        with open(output_path, mode="w", encoding="utf-8") as html_file:
+            print(html, file=html_file)
+        logic.save_galley(article, request, output_path, True, 'HTML',
+            save_to_disk=False)
+
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
