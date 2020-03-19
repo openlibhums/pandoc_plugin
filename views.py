@@ -3,17 +3,12 @@ from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 
-from plugins.pandoc_plugin import forms, plugin_settings
 
-from submission import models as sub_models
 from core import models as core_models
-from production import logic
-
+from submission import models as sub_models
 from utils import setting_handler, models
 
-import os
-import subprocess
-from bs4 import BeautifulSoup
+from plugins.pandoc_plugin import forms, plugin_settings, convert
 
 
 def index(request):
@@ -43,7 +38,7 @@ def index(request):
     return render(request, template, context)
 
 
-def convert(request, article_id=None, file_id=None):
+def convert_file(request, article_id=None, file_id=None):
     '''
     If request is POST, try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
@@ -63,47 +58,12 @@ def convert(request, article_id=None, file_id=None):
         article = get_object_or_404(sub_models.Article, pk=article_id)
         manuscript = get_object_or_404(core_models.File, pk=file_id)
 
-        orig_path = manuscript.self_article_path()
-
-        # generate a filename for the intermediate md file - raise error if unexpected manuscript file type
-        stripped_path, exten = os.path.splitext(orig_path)
-
-        if exten not in ['.docx', '.rtf']:
-            messages.add_message(request, messages.ERROR, 'The Pandoc plugin currently only supports .docx and .rtf filetypes')
+        try:
+            convert.generate_html_from_doc(article, manuscript, request)
+        except (TypeError, convert.PandocError)  as err:
+            messages.add_message( request, messages.ERROR, err)
             return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-        if request.POST.get('convert_html'):
-
-            output_path = stripped_path + '.html'
-
-            pandoc_command = base_pandoc_command + ['-s', orig_path, '-t', 'html']
-
-            try:
-                pandoc_return = subprocess.run(pandoc_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-            except subprocess.CalledProcessError as e:
-                messages.add_message(request, messages.ERROR, 'Pandoc encountered the following error when executing the command {cmd}: {err}'.format(cmd=e.cmd, err=e.stderr))
-                return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-
-            pandoc_soup = BeautifulSoup(pandoc_return.stdout, 'html.parser')
-
-            for img in pandoc_soup.find_all("img"):
-                # Pandoc adds `media/` to the src attributes of all the img tags it creates. We want to remove that prefix and leave only the base filename.
-                img["src"] = img["src"].replace("media/", "")
-                # Pandoc also guesses at the height/width attributes of images. We wish to strip those style tags
-                del img["style"]
-
-            # Write revised HTML to file
-            with open(output_path, mode="w", encoding="utf-8") as html_file:
-                print(pandoc_soup, file=html_file)
-
-            logic.save_galley(article, request, output_path, True, 'HTML', save_to_disk=False)
-
-            # TODO: make new file child of manuscript file
-
-        return redirect(request.META.get('HTTP_REFERER'))
-
-    # render buttons if GET request
-    else:
-        return reverse(request.META.get('HTTP_REFERER'))
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 # NEED LOGIC FOR IF HTML ALREADY GENERATED

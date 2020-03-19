@@ -8,6 +8,8 @@ JANEWAY_VERSION = '1.3.6'
 SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
 
+MEMORY_LIMIT_MB = 512
+
 
 def install():
     new_plugin, created = models.Plugin.objects.get_or_create(
