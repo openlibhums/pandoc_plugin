@@ -5,6 +5,7 @@ import tempfile
 
 from bs4 import BeautifulSoup
 from core.files import IMAGE_MIMETYPES
+from utils import models, setting_handler
 from utils.logger import get_logger
 
 from plugins.pandoc_plugin import plugin_settings
@@ -19,7 +20,7 @@ EXTRACT_MEDIA = "--extract-media"
 PANDOC_CMD = ['pandoc']
 
 
-def generate_html_from_doc(doc_path):
+def generate_html_from_doc(doc_path, extract_images=False):
     """ Generates an HTML galley from the given document path
     :param doc_path: A string with the path to the file to be converted
     :return: The string with the produced HTML and an iterable of paths to the
@@ -30,7 +31,10 @@ def generate_html_from_doc(doc_path):
         raise TypeError("File Extension {} not supported".format(extension))
 
     images_temp_path = tempfile.mkdtemp()
-    extract_images_arg = [EXTRACT_MEDIA, images_temp_path]
+    if extract_images:
+        extract_images_arg = [EXTRACT_MEDIA, images_temp_path]
+    else:
+        extract_images_arg = []
 
     pandoc_command = (
             PANDOC_CMD
@@ -39,7 +43,7 @@ def generate_html_from_doc(doc_path):
             + ['-s', doc_path, '-t', 'html']
     )
     try:
-        logger.info("[PANDOC]: Running coversion on {}".format(doc_path))
+        logger.info("[PANDOC] Running command '{}'".format(pandoc_command))
         pandoc_return = subprocess.run(
                 pandoc_command,
                 stdout=subprocess.PIPE,

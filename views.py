@@ -23,7 +23,14 @@ def index(request):
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
     pandoc_enabled = setting_handler.get_plugin_setting(plugin, 'pandoc_enabled', request.journal, create=True,
                                                         pretty='Enable Pandoc', types='boolean').processed_value
-    admin_form = forms.PandocAdminForm(initial={'pandoc_enabled': pandoc_enabled})
+    extract_images = setting_handler.get_plugin_setting(
+        plugin, 'pandoc_extract_images', request.journal, create=True,
+        pretty='Pandoc extract images', types='boolean').processed_value
+
+    admin_form = forms.PandocAdminForm(initial={
+        'pandoc_enabled': pandoc_enabled,
+        'pandoc_extract_images': extract_images,
+    })
 
     if request.POST:
         admin_form = forms.PandocAdminForm(request.POST)
@@ -57,8 +64,13 @@ def convert_file(request, article_id=None, file_id=None):
         pk=file_id, article_id=article.pk)
     file_path = manuscript.self_article_path()
 
+    plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
+    extract_images = setting_handler.get_plugin_setting(
+        plugin, 'pandoc_extract_images', request.journal, create=True,
+        pretty='Pandoc extract images', types='boolean').processed_value
+
     try:
-        html, images = convert.generate_html_from_doc(file_path)
+        html, images = convert.generate_html_from_doc(file_path, extract_images)
     except (TypeError, convert.PandocError)  as err:
         messages.add_message( request, messages.ERROR, err)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

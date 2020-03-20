@@ -18,18 +18,29 @@ def install():
         defaults={'version': VERSION},
     )
 
+    models.PluginSetting.objects.get_or_create(
+        name='pandoc_enabled',
+        plugin=new_plugin,
+        types='boolean',
+        pretty_name='Enable Pandoc Plugin',
+        description='Enable Pandoc Conversion Plugin',
+        is_translatable=False
+    )
+
+    models.PluginSetting.objects.get_or_create(
+        name='pandoc_extract_images',
+        plugin=new_plugin,
+        types='boolean',
+        pretty_name='Pandoc extract images',
+        description='If enabled, pandoc will extract images from documents '
+            'when generating galleys',
+        is_translatable=False,
+    )
+
     if created:
         print('Plugin {0} installed.'.format(PLUGIN_NAME))
     else:
         print('Plugin {0} is already installed.'.format(PLUGIN_NAME))
-
-    models.PluginSetting.objects.get_or_create(name='pandoc_enabled',
-                                               plugin=new_plugin,
-                                               types='boolean',
-                                               pretty_name='Enable Pandoc Plugin',
-                                               description='Enable Pandoc Conversion Plugin',
-                                               is_translatable=False)
-
 
 def hook_registry():
     """
