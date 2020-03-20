@@ -2,6 +2,7 @@ import os
 
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
+from django.core.files.base import ContentFile
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.views.decorators.http import require_POST
@@ -57,7 +58,7 @@ def convert_file(request, article_id=None, file_id=None):
     file_path = manuscript.self_article_path()
 
     try:
-        html = convert.generate_html_from_doc(file_path)
+        html, images = convert.generate_html_from_doc(file_path)
     except (TypeError, convert.PandocError)  as err:
         messages.add_message( request, messages.ERROR, err)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
@@ -66,8 +67,17 @@ def convert_file(request, article_id=None, file_id=None):
     output_path = stripped + '.html'
     with open(output_path, mode="w", encoding="utf-8") as html_file:
         print(html, file=html_file)
-    logic.save_galley(article, request, output_path, True, 'HTML',
+    galley = logic.save_galley(article, request, output_path, True, 'HTML',
         save_to_disk=False)
+    messages.add_message(request, messages.INFO, "HTML generated succesfully")
+
+    for image in images:
+        image_name = os.path.basename(image)
+        with open(image, 'rb') as image_reader:
+            image_file = ContentFile(image_reader.read())
+            image_file.name = image_name
+            logic.save_galley_image(galley, request, image_file, image_name,
+                fixed=False)
 
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
