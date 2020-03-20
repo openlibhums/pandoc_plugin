@@ -1,8 +1,10 @@
+import mimetypes
 import os
 import subprocess
 import tempfile
 
 from bs4 import BeautifulSoup
+from core.files import IMAGE_MIMETYPES
 from utils.logger import get_logger
 
 from plugins.pandoc_plugin import plugin_settings
@@ -59,6 +61,7 @@ def generate_html_from_doc(doc_path):
         os.path.join(base, f)
         for base, dirs, files in os.walk(images_temp_path)
         for f in files
+        if mimetypes.guess_type(f)[0] in IMAGE_MIMETYPES
     ]
     logger.debug("[PANDOC] Extracted {} images".format(len(image_paths)))
 
