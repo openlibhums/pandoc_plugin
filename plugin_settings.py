@@ -3,7 +3,7 @@ from utils import models
 PLUGIN_NAME = 'Pandoc Plugin'
 DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html'
 AUTHOR = 'Drew Stimson and Daniel Evans'
-VERSION = 0.3
+VERSION = 0.4
 JANEWAY_VERSION = '1.3.6'
 SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
