@@ -1,46 +1,39 @@
 from utils import models
+from utils import plugins
+from utils.install import update_settings
 
-PLUGIN_NAME = 'Pandoc Plugin'
+PLUGIN_NAME = 'pandoc'
 DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html'
 AUTHOR = 'Drew Stimson and Daniel Evans'
 VERSION = 0.4
 JANEWAY_VERSION = '1.3.6'
-SHORT_NAME = 'pandoc_plugin'
+SHORT_NAME = 'pandoc'
 MANAGER_URL = 'pandoc_index'
 
 MEMORY_LIMIT_MB = 512
 
 
+class PandocPlugin(plugins.Plugin):
+    plugin_name = PLUGIN_NAME
+    display_name = 'Pandoc Plugin'
+    description = DESCRIPTION
+    author = AUTHOR
+    short_name = SHORT_NAME
+
+    manager_url = MANAGER_URL
+
+    version = VERSION
+    janeway_version = JANEWAY_VERSION
+
+    is_workflow_plugin = False
+
+
 def install():
-    new_plugin, created = models.Plugin.objects.get_or_create(
-        name=SHORT_NAME,
-        enabled=True,
-        defaults={'version': VERSION},
+    PandocPlugin.install()
+    update_settings(
+        file_path='plugins/pandoc/install/settings.json'
     )
 
-    models.PluginSetting.objects.get_or_create(
-        name='pandoc_enabled',
-        plugin=new_plugin,
-        types='boolean',
-        pretty_name='Enable Pandoc Plugin',
-        description='Enable Pandoc Conversion Plugin',
-        is_translatable=False
-    )
-
-    models.PluginSetting.objects.get_or_create(
-        name='pandoc_extract_images',
-        plugin=new_plugin,
-        types='boolean',
-        pretty_name='Pandoc extract images',
-        description='If enabled, pandoc will extract images from documents '
-            'when generating galleys',
-        is_translatable=False,
-    )
-
-    if created:
-        print('Plugin {0} installed.'.format(PLUGIN_NAME))
-    else:
-        print('Plugin {0} is already installed.'.format(PLUGIN_NAME))
 
 def hook_registry():
     """
@@ -48,11 +41,11 @@ def hook_registry():
     """
     return {
             'conversion_buttons': {
-                'module': 'plugins.pandoc_plugin.hooks',
+                'module': 'plugins.pandoc.hooks',
                 'function': 'inject_pandoc',
             },
             'conversion_row': {
-                'module': 'plugins.pandoc_plugin.hooks',
+                'module': 'plugins.pandoc.hooks',
                 'function': 'conversion_row_hook',
             },
     }

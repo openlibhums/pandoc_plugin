@@ -8,7 +8,7 @@ from core.files import IMAGE_MIMETYPES
 from utils import models, setting_handler
 from utils.logger import get_logger
 
-from plugins.pandoc_plugin import plugin_settings
+from plugins.pandoc import plugin_settings
 
 logger = get_logger(__name__)
 

@@ -1,0 +1,32 @@
+[
+  {
+    "group": {
+      "name": "plugin:pandoc"
+    },
+    "setting": {
+      "description": "If enabled, pandoc plugin options will be available in typesetting.",
+      "is_translatable": false,
+      "name": "pandoc_enabled",
+      "pretty_name": "Enable Pandoc",
+      "type": "boolean"
+    },
+    "value": {
+      "default": ""
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:pandoc"
+    },
+    "setting": {
+      "description": "If enabled, pandoc will extract images from documents when generating typeset files.",
+      "is_translatable": false,
+      "name": "pandoc_extract_images",
+      "pretty_name": "Enable Image Extraction",
+      "type": "boolean"
+    },
+    "value": {
+      "default": ""
+    }
+  }
+]
