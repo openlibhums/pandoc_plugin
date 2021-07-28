@@ -17,9 +17,9 @@ from plugins.pandoc_plugin import forms, plugin_settings, convert
 
 
 def index(request):
-    '''
+    """
     Render admin page allowing users to enable or disable the plugin
-    '''
+    """
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
     pandoc_enabled = setting_handler.get_plugin_setting(plugin, 'pandoc_enabled', request.journal, create=True,
                                                         pretty='Enable Pandoc', types='boolean').processed_value
@@ -49,19 +49,20 @@ def index(request):
 
     return render(request, template, context)
 
+
 @require_POST
 @production_user_or_editor_required
 def convert_file(request, article_id=None, file_id=None):
-    '''
+    """
     Try to get article's manuscript file (should be docx or rtf), convert to markdown, then convert to html,
     save new files in applicable locations, register as Galley objects in database. Refresh submission page with new galley objects.
     If request is GET, render button to convert.
-    '''
+    """
 
     # retrieve article and selected manuscript
     article = get_object_or_404(sub_models.Article, pk=article_id)
     manuscript = get_object_or_404(core_models.File,
-        pk=file_id, article_id=article.pk)
+                                   pk=file_id, article_id=article.pk)
     file_path = manuscript.self_article_path()
 
     plugin = models.Plugin.objects.get(name=plugin_settings.SHORT_NAME)
@@ -71,16 +72,23 @@ def convert_file(request, article_id=None, file_id=None):
 
     try:
         html, images = convert.generate_html_from_doc(file_path, extract_images)
-    except (TypeError, convert.PandocError)  as err:
-        messages.add_message( request, messages.ERROR, err)
+    except (TypeError, convert.PandocError) as err:
+        messages.add_message(request, messages.ERROR, err)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
     stripped, _ = os.path.splitext(file_path)
     output_path = stripped + '.html'
     with open(output_path, mode="w", encoding="utf-8") as html_file:
         print(html, file=html_file)
-    galley = logic.save_galley(article, request, output_path, True, 'HTML',
-        save_to_disk=False)
+
+    galley = logic.save_galley(
+        article,
+        request,
+        output_path,
+        True,
+        'HTML',
+        save_to_disk=False,
+    )
     messages.add_message(request, messages.INFO, "HTML generated succesfully")
 
     for image in images:
@@ -89,8 +97,7 @@ def convert_file(request, article_id=None, file_id=None):
             image_file = ContentFile(image_reader.read())
             image_file.name = image_name
             logic.save_galley_image(galley, request, image_file, image_name,
-                fixed=False)
-
+                                    fixed=False)
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 

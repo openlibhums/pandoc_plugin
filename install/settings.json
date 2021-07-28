@@ -1,0 +1,32 @@
+[
+  {
+    "group": {
+      "name": "plugin:pandoc_plugin"
+    },
+    "setting": {
+      "description": "Enable Pandoc Conversion Plugin.",
+      "is_translatable": false,
+      "name": "pandoc_enabled",
+      "pretty_name": "Enable Pandoc Plugin",
+      "type": "boolean"
+    },
+    "value": {
+      "default": ""
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:pandoc_plugin"
+    },
+    "setting": {
+      "description": "If enabled, pandoc will extract images from documents when generating Typeset Files.",
+      "is_translatable": false,
+      "name": "pandoc_extract_images",
+      "pretty_name": "Pandoc Extract Images",
+      "type": "boolean"
+    },
+    "value": {
+      "default": ""
+    }
+  }
+]
