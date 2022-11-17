@@ -89,7 +89,7 @@ def convert_file(request, article_id=None, file_id=None):
         'HTML',
         save_to_disk=False,
     )
-    messages.add_message(request, messages.INFO, "HTML generated succesfully")
+    messages.add_message(request, messages.INFO, "HTML generated successfully")
 
     for image in images:
         image_name = os.path.basename(image)
