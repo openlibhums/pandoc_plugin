@@ -21,7 +21,7 @@ This is a plugin for [Janeway](https://github.com/BirkbeckCTP/janeway) that prov
 Most of the package managers for Linux distributions offer older versions of Pandoc, and you need at least 1.13 for full docx support. Luckily, pandoc offers a compiled distribution in .deb format:
 
 ``` sh
-wget 'https://github.com/jgm/pandoc/releases/download/2.5/pandoc-2.5-1-amd64.deb'
+wget 'https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb'
 dpkg -i pandoc-2.5-1-amd64.deb
 rm pandoc-2.5-1-amd64.deb
 ```
