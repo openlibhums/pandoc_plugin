@@ -4,8 +4,8 @@ from utils.install import update_settings
 PLUGIN_NAME = 'Pandoc Plugin'
 DESCRIPTION = 'A plugin to assist typesetters with converting docx/rtf files to html'
 AUTHOR = 'Drew Stimson and Daniel Evans'
-VERSION = 0.4
-JANEWAY_VERSION = '1.3.6'
+VERSION = "1.0"
+JANEWAY_VERSION = '1.5.0'
 SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
 
