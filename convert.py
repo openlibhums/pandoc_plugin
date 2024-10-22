@@ -72,6 +72,46 @@ def generate_html_from_doc(doc_path, extract_images=False):
     return str(pandoc_soup), image_paths
 
 
+def generate_pdf_from_doc(doc_path, mime_type):
+    """Generates a PDF galley from the given document path and handles images.
+
+    :param doc_path: A string with the path to the file to be converted
+    :param mime_type: MIME type of the file to be validated
+    :return: The path to the generated PDF and an iterable of paths to the extracted images
+    """
+    # Validate if the MIME type is supported
+    if mime_type not in plugin_settings.PDF_CONVERSION_SUPPORTED_MIME_TYPES:
+        raise TypeError(f"File MIME type {mime_type} not supported")
+
+    # Temporary directory to extract images
+    images_temp_path = tempfile.mkdtemp()
+
+    pandoc_command = (
+        PANDOC_CMD
+        + MEMORY_LIMIT_ARG
+        + [EXTRACT_MEDIA, images_temp_path]
+        + [doc_path, '-o', f'{os.path.splitext(doc_path)[0]}.pdf']
+    )
+
+    try:
+        logger.info(f"[PANDOC] Running command: {pandoc_command}")
+        subprocess.run(pandoc_command, check=True)
+    except subprocess.CalledProcessError as e:
+        raise PandocError(f"PandocError: {e.stderr}")
+
+    # Extract image paths
+    image_paths = [
+        os.path.join(base, f)
+        for base, _, files in os.walk(images_temp_path)
+        for f in files
+        if mimetypes.guess_type(f)[0] in IMAGE_MIMETYPES
+    ]
+
+    pdf_output_path = f'{os.path.splitext(doc_path)[0]}.pdf'
+
+    return pdf_output_path, image_paths
+
+
 class PandocError(Exception):
     def __init__(self, msg, cmd=None):
         super().__init__(self, msg)

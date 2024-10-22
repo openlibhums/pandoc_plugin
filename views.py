@@ -101,4 +101,55 @@ def convert_file(request, article_id=None, file_id=None):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
-# NEED LOGIC FOR IF HTML ALREADY GENERATED
+
+@require_POST
+@production_user_or_editor_required
+def convert_to_pdf(request, article_id, file_id):
+    """
+    Retrieve an article's manuscript file, convert it to PDF using Pandoc,
+    handle embedded images, and register it as a galley.
+    """
+    article = get_object_or_404(
+        sub_models.Article,
+        pk=article_id,
+    )
+    manuscript = get_object_or_404(
+        core_models.File,
+        pk=file_id,
+        article_id=article.pk,
+    )
+    file_path = manuscript.self_article_path()
+
+    try:
+        pdf_output_path, image_paths = convert.generate_pdf_from_doc(
+            file_path,
+            manuscript.mime_type,
+        )
+    except (TypeError, convert.PandocError) as e:
+        messages.error(request, f'Error during PDF conversion: {str(e)}')
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+    galley = logic.save_galley(
+        article,
+        request,
+        pdf_output_path,
+        True,
+        'PDF',
+        save_to_disk=False,
+    )
+
+    for image_path in image_paths:
+        image_name = os.path.basename(image_path)
+        with open(image_path, 'rb') as image_reader:
+            image_file = ContentFile(image_reader.read())
+            image_file.name = image_name
+            logic.save_galley_image(
+                galley,
+                request,
+                image_file,
+                image_name,
+                fixed=False,
+            )
+
+    messages.success(request, 'PDF generated successfully')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
