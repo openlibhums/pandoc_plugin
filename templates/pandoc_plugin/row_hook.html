@@ -8,7 +8,8 @@
         </form>
         <form action="{% url 'convert_to_pdf' article.pk file.pk %}" method="post">
             {% csrf_token %}
-            <button type="submit" class="button success small" name="convert_pdf" value="{{ article.pk }}">Generate PDF</button>
+            <button type="submit" class="button success small" name="convert_pdf" value="stamped">Generate PDF (Stamped)</button>
+            <button type="submit" class="button success small" name="convert_pdf" value="unstamped">Generate PDF (Unstamped)</button>
         </form>
     </td>
 </tr>
