@@ -93,6 +93,7 @@ def generate_pdf_with_cover_sheet(doc_path, mime_type, cover_sheet_html):
                 cover_pdf_path,
                 '--from=html',
                 '--to=pdf',
+                '--pdf-engine=xelatex',
             ],
             input=cover_sheet_html.encode(),
             check=True,
@@ -105,7 +106,7 @@ def generate_pdf_with_cover_sheet(doc_path, mime_type, cover_sheet_html):
         PANDOC_CMD
         + MEMORY_LIMIT_ARG
         + [EXTRACT_MEDIA, images_temp_path]
-        + [doc_path, '-o', document_pdf_path]
+        + [doc_path, '-o', document_pdf_path, '--pdf-engine=xelatex']
     )
 
     try:
@@ -145,6 +146,7 @@ def convert_word_to_pdf(doc_path, output_filename):
         doc_path,
         '-o',
         output_pdf_path,
+        '--pdf-engine=xelatex',
         '-V',
         'geometry:margin=1.5in',
     ]
@@ -174,6 +176,7 @@ def convert_html_to_pdf(html_content, output_filename):
                 '--to=pdf',
                 '-o',
                 output_pdf_path,
+                '--pdf-engine=xelatex',
                 "-V",
                 "pagestyle=empty",
                 "-V",
@@ -211,4 +214,3 @@ class PandocError(Exception):
     def __init__(self, msg, cmd=None):
         super().__init__(self, msg)
         self.cmd = cmd
-

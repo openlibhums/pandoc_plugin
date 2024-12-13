@@ -40,7 +40,9 @@ This plugin integrates [Pandoc](https://pandoc.org/) into the Janeway platform, 
    - Click "Plugins" at the bottom of the left-hand sidebar.
    - Locate the Pandoc Plugin, enable it, and click submit.
 
-### Installing Pandoc
+### Installing Pandoc and XeLaTeX
+
+#### Pandoc
 
 You must have Pandoc installed on your server to use this plugin. Most Linux distributions include older versions of Pandoc, but at least version 1.13 is required for full `.docx` support.
 
@@ -55,6 +57,32 @@ rm pandoc-2.19.2-1-amd64.deb
 Verify that Pandoc is installed and available:
 ```bash
 pandoc --version
+```
+
+#### XeLaTeX
+
+The plugin uses `xelatex` as the PDF engine. If you encounter the error `xelatex not found`, follow these steps to install `xelatex` on your system.
+
+##### On Ubuntu/Debian:
+To install `xelatex` using the TeX Live distribution:
+```bash
+sudo apt update
+sudo apt install texlive-xetex
+```
+
+##### On CentOS/RHEL:
+```bash
+sudo yum install texlive-xetex
+```
+
+##### On macOS:
+```bash
+brew install --cask mactex
+```
+
+Verify `xelatex` is installed:
+```bash
+xelatex --version
 ```
 
 ## Configuration
