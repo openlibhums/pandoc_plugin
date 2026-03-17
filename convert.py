@@ -4,9 +4,10 @@ import subprocess
 import tempfile
 
 from bs4 import BeautifulSoup
+
 from core.files import IMAGE_MIMETYPES
-from utils import models, setting_handler
 from utils.logger import get_logger
+from core.logic import resize_and_crop
 
 from plugins.pandoc_plugin import plugin_settings
 
@@ -19,8 +20,17 @@ MEMORY_LIMIT_ARG = ['+RTS', '-M{}M'.format(plugin_settings.MEMORY_LIMIT_MB), '-R
 EXTRACT_MEDIA = "--extract-media"
 PANDOC_CMD = ['pandoc']
 
+def get_img_size(style, default_dpi):
+    styles = dict(s.split(":") for s in style.split(";"))
+    w = styles.get("width", False)
+    h = styles.get("height", False)
+    if w and h:
+        w = float(w.strip("in"))
+        h = float(h.strip("in"))
+        return (int(w * default_dpi[0]), int(h * default_dpi[1]))
+    return False
 
-def generate_html_from_doc(doc_path, extract_images=False):
+def generate_html_from_doc(doc_path, extract_images=False, resize_images=False, default_dpi=(70, 70)):
     """ Generates an HTML galley from the given document path
     :param doc_path: A string with the path to the file to be converted
     :return: The string with the produced HTML and an iterable of paths to the
@@ -56,8 +66,15 @@ def generate_html_from_doc(doc_path, extract_images=False):
     # Formatting
     pandoc_soup = BeautifulSoup(pandoc_return.stdout, 'html.parser')
     for img in pandoc_soup.find_all("img"):
+        tmp_img_path = img["src"]
         # Replace pandoc path to image with filename
         img["src"] = os.path.basename(img["src"])
+
+        if resize_images and img.has_attr("style"):
+            size = get_img_size(img["style"], default_dpi)
+            if size:
+                resize_and_crop(tmp_img_path, size=size)
+
         # Undo pandoc guess of height/width attributes of images.
         del img["style"]
 

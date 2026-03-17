@@ -69,9 +69,20 @@ def convert_file(request, article_id=None, file_id=None):
     extract_images = setting_handler.get_plugin_setting(
         plugin, 'pandoc_extract_images', request.journal, create=True,
         pretty='Pandoc extract images', types='boolean').processed_value
+    resize_images = setting_handler.get_plugin_setting(
+        plugin, 'pandoc_resize_images', request.journal, create=True,
+        pretty='Pandoc resize images', types='boolean').processed_value
+    default_dpi = (
+        int(setting_handler.get_plugin_setting(
+            plugin, 'pandoc_default_dpi_x', request.journal, create=True,
+            pretty='Pandoc Default DPI X', types='int').processed_value),
+        int(setting_handler.get_plugin_setting(
+            plugin, 'pandoc_default_dpi_y', request.journal, create=True,
+            pretty='Pandoc Default DPI Y', types='int').processed_value)
+    )
 
     try:
-        html, images = convert.generate_html_from_doc(file_path, extract_images)
+        html, images = convert.generate_html_from_doc(file_path, extract_images, resize_images, default_dpi)
     except (TypeError, convert.PandocError) as err:
         messages.add_message(request, messages.ERROR, err)
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
