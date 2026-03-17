@@ -28,5 +28,50 @@
     "value": {
       "default": ""
     }
+  },
+  {
+    "group": {
+      "name": "plugin:pandoc_plugin"
+    },
+    "setting": {
+      "description": "If enabled, pandoc will resize images from documents when generating Typeset Files.",
+      "is_translatable": false,
+      "name": "pandoc_resize_images",
+      "pretty_name": "Pandoc Resize Images",
+      "type": "boolean"
+    },
+    "value": {
+      "default": ""
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:pandoc_plugin"
+    },
+    "setting": {
+      "description": "",
+      "is_translatable": false,
+      "name": "pandoc_default_dpi_x",
+      "pretty_name": "Pandoc Default DPI X",
+      "type": "int"
+    },
+    "value": {
+      "default": 72
+    }
+  },
+  {
+    "group": {
+      "name": "plugin:pandoc_plugin"
+    },
+    "setting": {
+      "description": "",
+      "is_translatable": false,
+      "name": "pandoc_default_dpi_y",
+      "pretty_name": "Pandoc Default DPI Y",
+      "type": "int"
+    },
+    "value": {
+      "default": 72
+    }
   }
 ]
