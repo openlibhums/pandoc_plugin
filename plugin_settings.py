@@ -10,6 +10,12 @@ SHORT_NAME = 'pandoc_plugin'
 MANAGER_URL = 'pandoc_index'
 
 MEMORY_LIMIT_MB = 512
+PDF_CONVERSION_SUPPORTED_MIME_TYPES = [
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/rtf',
+    'application/vnd.oasis.opendocument.text',
+    'text/html',
+]
 
 
 class PandocPlugin(plugins.Plugin):
