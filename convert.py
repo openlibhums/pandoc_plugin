@@ -3,7 +3,7 @@ import os
 import subprocess
 import tempfile
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from PIL import Image, UnidentifiedImageError
 
 from core.files import IMAGE_MIMETYPES
@@ -79,8 +79,26 @@ def generate_html_from_doc(doc_path, extract_images=False, resize_images=False, 
 
     # Formatting
     pandoc_soup = BeautifulSoup(pandoc_return.stdout, 'html.parser')
+    dropped_images = []
     for img in pandoc_soup.find_all("img"):
         tmp_img_path = img["src"]
+
+        if (
+            not os.path.isfile(tmp_img_path)
+            or mimetypes.guess_type(tmp_img_path)[0] not in IMAGE_MIMETYPES
+        ):
+            original_name = os.path.basename(tmp_img_path)
+            dropped_images.append(original_name)
+            img.replace_with(Comment(
+                " pandoc_plugin: image '{}' was not included — its format "
+                "isn't supported for web display (JPEG, PNG, GIF, TIFF, and "
+                "AVIF are), or image extraction was turned off for this "
+                "journal. Re-embed it as a supported image format (e.g. via "
+                "'Paste Special > Picture (PNG)' in Word) and regenerate. "
+                .format(original_name)
+            ))
+            continue
+
         # Replace pandoc path to image with filename
         img["src"] = os.path.basename(img["src"])
 
@@ -91,6 +109,15 @@ def generate_html_from_doc(doc_path, extract_images=False, resize_images=False, 
 
         # Undo pandoc guess of height/width attributes of images.
         del img["style"]
+
+    if dropped_images:
+        logger.warning(
+            "[PANDOC] {} image(s) referenced in the source document could "
+            "not be converted and were replaced with a comment in the "
+            "generated HTML: {}".format(
+                len(dropped_images), ", ".join(dropped_images)
+            )
+        )
 
     image_paths = [
         os.path.join(base, f)
